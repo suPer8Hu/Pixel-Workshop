@@ -416,15 +416,35 @@ def style_transfer_api():
         result_save_path = "debug_images/style_result.png"
         result_img.save(result_save_path)
         
-        # 编码结果图像
-        buffered = io.BytesIO()
-        result_img.save(buffered, format="PNG")
-        img_str = base64.b64encode(buffered.getvalue()).decode()
+        # 确保两个图像文件存在
+        if not os.path.exists("debug_images/result.png") or not os.path.exists("debug_images/style_result.png"):
+            # 如果缺少文件，可以生成两个不同的图像版本
+            print("警告：缺少图像文件，生成备用图像")
+            
+            # 如果缺少第一个图像，创建并保存它
+            if not os.path.exists("debug_images/result.png"):
+                with open("debug_images/result.png", "wb") as f:
+                    enhancer = ImageEnhance.Contrast(result_img)
+                    alt_img = enhancer.enhance(1.5)
+                    buffered = io.BytesIO()
+                    alt_img.save(buffered, format="PNG")
+                    f.write(buffered.getvalue())
+        
+        # 读取两个图像文件
+        with open("debug_images/result.png", "rb") as f:
+            result_bytes = f.read()
+        with open("debug_images/style_result.png", "rb") as f:
+            style_bytes = f.read()
+            
+        # 编码为base64
+        result_base64 = base64.b64encode(result_bytes).decode()
+        style_base64 = base64.b64encode(style_bytes).decode()
         
         print("===== 风格迁移完成 =====")
+    
         return jsonify({
-            'resultImage': f'data:image/png;base64,{img_str}',
-            'alternativeImage': f'data:image/png;base64,{img_str}'
+            'resultImage': f'data:image/png;base64,{result_base64}',  
+            'alternativeImage': f'data:image/png;base64,{style_base64}'  
         })
         
     except Exception as e:
