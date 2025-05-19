@@ -1,3 +1,6 @@
 node_modules
 .venv/
 style_transfer_env/
+neural_style_env/
+*.pyc
+__pycache__/
